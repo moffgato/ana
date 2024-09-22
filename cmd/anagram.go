@@ -53,7 +53,7 @@ func ReadDictionary(filepath string) (map[string]bool, error) {
 
 }
 
-// reads wurds from file, returns it as a list of strings
+// reads words from file, returns it as a list of strings
 func ReadWordsFromFile(filepath string) []string {
     file, err := os.Open(filepath)
     if err != nil {
@@ -81,7 +81,6 @@ func AnagramHandler(cmd *cobra.Command, args []string) {
 
     var wordList []string
 
-    // how can mirrors be real if our eyes aren't real?
     wordSet, err :=  ReadDictionary(dict)
     if err != nil {
        fmt.Println(err)
