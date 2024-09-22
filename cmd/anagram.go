@@ -7,7 +7,6 @@ import (
 	"sort"
 	"strings"
 
-  	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
     "github.com/moffgato/ana/pkg/printer"
 )
@@ -15,24 +14,22 @@ import (
 var (
     words string
     file string
-    merge bool
     count int
     dict string
     format string
     output string
-    progress bool
 )
 
 var anagramCmd = &cobra.Command{
     Use:   "generate",
     Aliases: []string{"g", "gen"},
     Short: "Generate anagrams from word lists",
-	Long:  `Generate anagrams from word lists or merged words. You can input words directly or via a file.`,
+	Long:  `Generate anagrams from word lists. You can input words directly or via a file.`,
     Run: AnagramHandler,
 }
 
 // read words from dictionary file, returns a proper map for lookups
-func readDictionary(filepath string) (map[string]bool, error) {
+func ReadDictionary(filepath string) (map[string]bool, error) {
     file, err := os.Open(filepath)
     if err != nil {
         return nil, fmt.Errorf("error opening dictionary file: %v", err)
@@ -57,7 +54,7 @@ func readDictionary(filepath string) (map[string]bool, error) {
 }
 
 // reads wurds from file, returns it as a list of strings
-func readWordsFromFile(filepath string) []string {
+func ReadWordsFromFile(filepath string) []string {
     file, err := os.Open(filepath)
     if err != nil {
         fmt.Println("Error opening file:", err)
@@ -81,10 +78,11 @@ func readWordsFromFile(filepath string) []string {
 }
 
 func AnagramHandler(cmd *cobra.Command, args []string) {
+
     var wordList []string
 
     // how can mirrors be real if our eyes aren't real?
-    wordSet, err :=  readDictionary(dict)
+    wordSet, err :=  ReadDictionary(dict)
     if err != nil {
        fmt.Println(err)
        return
@@ -92,7 +90,7 @@ func AnagramHandler(cmd *cobra.Command, args []string) {
 
     // read from file or []string args
     if file != "" {
-        wordList = readWordsFromFile(file)
+        wordList = ReadWordsFromFile(file)
     } else if words != "" {
         wordList = strings.Split(words, ",")
     } else {
@@ -100,64 +98,47 @@ func AnagramHandler(cmd *cobra.Command, args []string) {
         return
     }
 
-    results := make(map[string][]string)
+    var results []printer.AnagramOutput
 
-    var bar *progressbar.ProgressBar
-	if progress {
-		bar = progressbar.NewOptions(len(wordList),
-			progressbar.OptionSetDescription("Generating anagrams..."),
-			progressbar.OptionSetTheme(progressbar.Theme{
-				Saucer:        "[#]",
-				SaucerPadding: " ",
-				BarStart:      "[",
-				BarEnd:        "]",
-			}),
-			progressbar.OptionShowCount(),
-			progressbar.OptionShowIts(),
-			progressbar.OptionSetWidth(20),
-			progressbar.OptionSetPredictTime(true),
-		)
-	}
+    for _, word := range wordList {
+        word = strings.TrimSpace(word)
+        validSubsets := FindValidSubAnagrams(word, wordSet)
+        anagrams := GenerateAnagramsFromSubsets(word, wordSet)
 
-	for _, word := range wordList {
-		word = strings.TrimSpace(word)
-		validAnagrams := findValidSubAnagrams(word, wordSet)
-		if len(validAnagrams) == 0 {
-            results[word] = []string{""}
-		} else {
-            results[word] = validAnagrams
-        }
+        results = append(results, printer.AnagramOutput{
+            Word:     word,
+            Subsets:  validSubsets,
+            Anagrams: anagrams,
+        })
 
-        if progress {
-			bar.Add(1)
-		}
-
-	}
-
-    if progress {
-        bar.Finish()
-        // nukes current line, fixes single word output mess
-        fmt.Print("\r\033[K")
     }
 
-    var outputContent string
-    switch format {
-	case "json":
-		printer.JSON(results)
-	case "yaml":
-		printer.YAML(results)
-	case "toml":
-		printer.TOML(results)
-	case "table":
-		printer.Table(results)
-	default:
-		fmt.Println("Unsupported output format. Supported formats: table, json, yaml, toml")
-	}
+    // convert results to AnagramResults struct
+    finalResults := printer.Output{
+        Results: results,
+    }
 
+    // output based on selected format
+    switch format {
+    case "json":
+        printer.JSON(finalResults)
+    case "yaml":
+        printer.YAML(finalResults)
+    case "toml":
+        printer.TOML(finalResults)
+    case "table":
+        printer.Table(finalResults)
+    default:
+        fmt.Println("Unsupported format. Supported formats: table, json, yaml, toml")
+        return
+    }
+
+
+    var outputContent string
     if output == "" || output == "stdout" {
 		fmt.Print(outputContent)
 	} else {
-		err := writeToFile(output, outputContent)
+		err := WriteToFile(output, outputContent)
 		if err != nil {
 			fmt.Printf("Error writing to file: %v\n", err)
 		} else {
@@ -167,8 +148,8 @@ func AnagramHandler(cmd *cobra.Command, args []string) {
 
 }
 
-// deletes files like rm -rf --no-preserve-root
-func writeToFile(filePath, content string) error {
+// deletes files á la rm -rf --no-preserve-root
+func WriteToFile(filePath, content string) error {
 	file, err := os.Create(filePath)
 	if err != nil {
 		return err
@@ -179,11 +160,11 @@ func writeToFile(filePath, content string) error {
 	return err
 }
 
-func findValidSubAnagrams(word string, wordSet map[string]bool) []string {
+func FindValidSubAnagrams(word string, wordSet map[string]bool) []string {
 	var validAnagrams []string
 
 	// get all possible letter combinations (subsets) of the word
-	subsets := generateSubsets([]rune(word))
+	subsets := GenerateSubsets([]rune(word))
 
 	// check each subset is a valid word in the dictionary
 	for _, subset := range subsets {
@@ -192,11 +173,11 @@ func findValidSubAnagrams(word string, wordSet map[string]bool) []string {
 		}
 	}
 
-	return unique(validAnagrams)
+	return Unique(validAnagrams)
 }
 
 // generates all subsets (combinations) of the letters from the given word.
-func generateSubsets(chars []rune) []string {
+func GenerateSubsets(chars []rune) []string {
 	var subsets []string
 	length := len(chars)
 
@@ -214,18 +195,51 @@ func generateSubsets(chars []rune) []string {
 	return subsets
 }
 
+func GenerateAnagramsFromSubsets(word string, wordSet map[string]bool) []string {
+	// get all permutations of the word
+	permutations := GeneratePermutations([]rune(word))
 
-func generatePermutations(chars []rune) []string {
+	var anagrams []string
+
+	// if the permutation is a valid word or set of valid words
+	for _, perm := range permutations {
+		if wordSet[perm] {
+			anagrams = append(anagrams, perm)
+		} else {
+			// split into words. check if all are valid
+			splitWords := strings.Fields(perm)
+			valid := true
+			for _, w := range splitWords {
+				if !wordSet[w] {
+					valid = false
+					break
+				}
+			}
+			if valid {
+				anagrams = append(anagrams, perm)
+			}
+		}
+	}
+
+	return Unique(anagrams)
+}
+
+func GeneratePermutations(chars []rune) []string {
+
+    // when only one char remains, return as single perm
     if len(chars) == 1 {
         return []string{string(chars)}
     }
 
     var permutations []string
+    // iterate chars of input slice
     for i := 0; i < len(chars); i++ {
+        // creates slice excluding current char + calls valhalla
         remaining := append([]rune{}, chars[:i]...)
         remaining = append(remaining, chars[i+1:]...)
 
-        for _, perm := range generatePermutations(remaining) {
+        // generate permutations for remaining chars
+        for _, perm := range GeneratePermutations(remaining) {
             permutations = append(permutations, string(chars[i])+perm)
         }
     }
@@ -233,7 +247,8 @@ func generatePermutations(chars []rune) []string {
     return permutations
 }
 
-func unique(strings []string) []string {
+
+func Unique(strings []string) []string {
     uniqueStrings := make(map[string]bool)
     for _, s := range strings {
         uniqueStrings[s] = true

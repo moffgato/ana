@@ -13,6 +13,7 @@ var root = &cobra.Command{
   	Long:  `A CLI tool that generates anagrams for words or merged words, with support for input from files.`,
 }
 
+
 func Execute() {
     if err := root.Execute(); err != nil {
         fmt.Println(err)
@@ -22,6 +23,7 @@ func Execute() {
 
 func init() {
 
+    root.CompletionOptions.HiddenDefaultCmd = true
     root.AddCommand(anagramCmd)
 
 }
