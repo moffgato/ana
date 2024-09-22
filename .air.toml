@@ -9,7 +9,6 @@ tmp_dir = "tmp"
     "./test-words-list.txt",
     "-f",
     "json",
-    "--progress"
   ]
   bin = "./tmp/main"
   cmd = "go build -o ./tmp/main ."
