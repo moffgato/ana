@@ -271,7 +271,6 @@ func init() {
 	anagramCmd.Flags().StringVarP(&dict, "dict", "d", "/usr/share/dict/american-english", "Path to the word list (dictionary)")
 	anagramCmd.Flags().StringVarP(&format, "format", "f", "table", "Output format (table, json, yaml, toml)")
 	anagramCmd.Flags().StringVarP(&output, "output", "o", "", "Output destination (file path or stdout)")
-  	anagramCmd.Flags().BoolVarP(&progress, "progress", "p", false, "Display a fancy progress bar")
 
 }
 
