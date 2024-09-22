@@ -1,7 +1,7 @@
 ## Ana
 
-Anagram CLI is a simple command-line tool that generates anagrams from a list of words or a file.
-It leverages a dictionary file to find valid anagrams and outputs them in various formats (table, JSON, YAML, TOML).
+Anagram CLI is a simple command-line tool that generates anagrams from a list of words or a file.     
+It leverages a dictionary file to find valid anagrams and outputs them in various formats (table, JSON, YAML, TOML).   
 
 - [Install](###install)
 - [Usage](###usage)
