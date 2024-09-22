@@ -121,7 +121,7 @@ func AnagramHandler(cmd *cobra.Command, args []string) {
 
 	for _, word := range wordList {
 		word = strings.TrimSpace(word)
-		validAnagrams := findValidAnagrams(word, wordSet)
+		validAnagrams := findValidSubAnagrams(word, wordSet)
 		if len(validAnagrams) == 0 {
             results[word] = []string{""}
 		} else {
@@ -179,18 +179,41 @@ func writeToFile(filePath, content string) error {
 	return err
 }
 
-func findValidAnagrams(word string, wordSet map[string]bool) []string {
-    perms := generatePermutations([]rune(word))
-    var validAnagrams []string
+func findValidSubAnagrams(word string, wordSet map[string]bool) []string {
+	var validAnagrams []string
 
-    for _, perm := range perms {
-        if wordSet[perm] {
-            validAnagrams = append(validAnagrams, perm)
-        }
-    }
+	// get all possible letter combinations (subsets) of the word
+	subsets := generateSubsets([]rune(word))
 
-    return unique(validAnagrams)
+	// check each subset is a valid word in the dictionary
+	for _, subset := range subsets {
+		if wordSet[subset] {
+			validAnagrams = append(validAnagrams, subset)
+		}
+	}
+
+	return unique(validAnagrams)
 }
+
+// generates all subsets (combinations) of the letters from the given word.
+func generateSubsets(chars []rune) []string {
+	var subsets []string
+	length := len(chars)
+
+	// iterate over all possible combinations of letters
+	for i := 1; i < (1 << length); i++ {
+		var subset []rune
+		for j := 0; j < length; j++ {
+			if i&(1<<j) > 0 {
+				subset = append(subset, chars[j])
+			}
+		}
+		subsets = append(subsets, string(subset))
+	}
+
+	return subsets
+}
+
 
 func generatePermutations(chars []rune) []string {
     if len(chars) == 1 {
