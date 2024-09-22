@@ -1,6 +1,6 @@
 ## Ana
 
-Anagram CLI is a simple command-line tool that generates anagrams from a list of words or a file.     
+Anagram CLI is a simple command-line tool that generates anagrams from a list of words or a file.   
 It leverages a dictionary file to find valid anagrams and outputs them in various formats (table, JSON, YAML, TOML).   
 
 - [Install](###install)
@@ -15,11 +15,11 @@ It leverages a dictionary file to find valid anagrams and outputs them in variou
 
 
 ### Install
-> install the `ana` go package
+> Install the `ana` go package
 ```bash
 go install github.com/moffgato/ana
 ```
-> optional but recommended. get a word list
+> Optional but recommended. get a word list
 ```rb
 sudo apt install wamerican
 
@@ -56,9 +56,13 @@ Flags:
   -p, --progress        Display a fancy progress bar
   -w, --words string    Comma-separated list of words
 ```
-> command completion is optional but available
+> Command completion is optional but available
 ```bash
 ana completion -h
+```
+> example with fish
+```
+ana completion fish > ~/.config/fish/completions/ana.fish
 ```
 
 ```bash
@@ -79,10 +83,16 @@ Flags:
 
 Use "ana completion [command] --help" for more information about a command.
 ```
+```bash
+op@xx ~/l/ana (main)> ana g -
+-d  --dict         (Path to the word list (dictionary))  -i  --file                (File path to read words from)
+-f  --format  (Output format (table, json, yaml, toml))  -o  --output  (Output destination (file path or stdout))
+-h  --help                          (help for generate)  -w  --words              (Comma-separated list of words)
+```
 
 
 ### Dev
-> run dev, `air` reloads on file changes.
+> Run in dev mode, `air` reloads on file changes.
 ```bash
 air
 ```
@@ -101,25 +111,19 @@ running...
 {
   "results": [
     {
-      "word": "retard",
+      "word": "trader",
       "subsets": [
         "a",
         "ad",
         "d",
         "e",
-        "ea",
-        "ear",
-        "ed",
-        "eta",
         "r",
         "re",
-        "read",
-        "rear",
-        "red",
-        "retard",
         "t",
         "tad",
-        "tar"
+        "tar",
+        "trade",
+        "trader"
       ],
       "anagrams": [
         "retard",
@@ -131,7 +135,7 @@ running...
 
 
 ### Test
-> find anagrams for average trader's aptitude
+> Find anagrams for average trader's aptitude
 ```
 go test cmd/anagram_test.go
 ```
